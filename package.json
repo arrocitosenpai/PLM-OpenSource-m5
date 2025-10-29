@@ -1,16 +1,7 @@
 {
-  "name": "plm-opensource",
+  "name": "my-v0-project",
   "version": "0.1.0",
-  "private": false,
-  "description": "AI-assisted Product Lifecycle Management — Community Edition by Nuvio.",
-  "author": "Agustin Scoponi <scoponiagustin@gmail.com>",
-  "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/arrocitosenpai/PLM-OpenSource-m5.git"
-  },
-  "homepage": "https://github.com/arrocitosenpai/PLM-OpenSource-m5",
-  "funding": "https://github.com/sponsors/arrocitosenpai",
+  "private": true,
   "scripts": {
     "build": "next build",
     "dev": "next dev",
