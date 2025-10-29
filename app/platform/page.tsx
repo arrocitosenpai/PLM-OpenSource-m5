@@ -12,6 +12,7 @@ import { useAuth, getRoleStageFilter } from "@/lib/auth-context"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CommentsSection } from "@/components/comments-section"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { AssignedUsersCard } from "@/components/assigned-users-card"
 
 function PlatformPageContent() {
   const searchParams = useSearchParams()
@@ -93,20 +94,7 @@ function PlatformPageContent() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Assigned Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {opportunity.assignedUsers.map((user) => (
-                  <Badge key={user} variant="secondary" className="px-3 py-1">
-                    {user}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <AssignedUsersCard opportunityId={opportunity.id} />
 
           <Card>
             <CardHeader>

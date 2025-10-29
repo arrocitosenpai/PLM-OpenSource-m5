@@ -18,6 +18,7 @@ import Link from "next/link"
 import { ImplementationTimeline } from "@/components/implementation-timeline"
 import { ImplementationPhasesTimeline } from "@/components/implementation-phases-timeline"
 import { ImplementationGanttChart } from "@/components/implementation-gantt-chart"
+import { AssignedUsersCard } from "@/components/assigned-users-card"
 
 interface JiraIssue {
   id: string
@@ -301,24 +302,7 @@ function ImplementationPageContent() {
             </CardContent>
           </Card>
 
-          <Card className="transition-all hover:shadow-md">
-            <CardHeader>
-              <CardTitle>Assigned Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {opportunity.assignedUsers && opportunity.assignedUsers.length > 0 ? (
-                  opportunity.assignedUsers.map((user, index) => (
-                    <Badge key={index} variant="secondary" className="px-3 py-1">
-                      {user}
-                    </Badge>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">No users assigned yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <AssignedUsersCard opportunityId={opportunity.id} />
 
           <Card className="transition-all hover:shadow-md">
             <CardHeader>
