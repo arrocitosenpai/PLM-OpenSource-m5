@@ -55,10 +55,9 @@ interface RolePageLayoutProps {
   opportunity: Opportunity
   stage: string
   children?: React.ReactNode
-  onValidationTrigger?: () => void
 }
 
-export function RolePageLayout({ opportunity, stage, children, onValidationTrigger }: RolePageLayoutProps) {
+export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -138,12 +137,6 @@ export function RolePageLayout({ opportunity, stage, children, onValidationTrigg
   }
 
   const handleSubmit = () => {
-    if (onValidationTrigger) {
-      onValidationTrigger()
-      return
-    }
-
-    // Default behavior for other pages
     if (nextStage) {
       setShowStageProgressDialog(true)
     } else {

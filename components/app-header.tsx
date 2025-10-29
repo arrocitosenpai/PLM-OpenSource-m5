@@ -12,8 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { LogOut, User, Sparkles } from "lucide-react"
-import Link from "next/link"
+import { LogOut, User } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 export function AppHeader() {
@@ -42,12 +41,6 @@ export function AppHeader() {
           <h2 className="font-sans text-xl font-bold text-card-foreground">NUVIO</h2>
           <span className="text-sm text-muted-foreground">PLM</span>
         </div>
-        <Button asChild variant={pathname === "/ai-demo" ? "default" : "ghost"} size="sm" className="gap-2">
-          <Link href="/ai-demo">
-            <Sparkles className="h-4 w-4" />
-            AI Nuvio
-          </Link>
-        </Button>
       </div>
 
       <div className="flex items-center gap-2">

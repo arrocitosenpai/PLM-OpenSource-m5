@@ -15,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CommentsSection } from "@/components/comments-section"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { getTeamLabel } from "@/lib/mock-data"
-import { AIValidationAgent } from "@/components/ai-validation-agent"
 import { JiraCreateDialog } from "@/components/jira-create-dialog"
 
 function ProductPageContent() {
@@ -31,7 +30,6 @@ function ProductPageContent() {
       )
   const { toast } = useToast()
 
-  const [isValidationOpen, setIsValidationOpen] = useState(false)
   const [isJiraCreateOpen, setIsJiraCreateOpen] = useState(false)
 
   if (!opportunity) {
@@ -49,17 +47,6 @@ function ProductPageContent() {
       title: "Upload Initiated",
       description: "File upload functionality (mock)",
     })
-  }
-
-  const handleApprove = () => {
-    toast({
-      title: "Opportunity Approved",
-      description: "The opportunity has been validated and approved successfully.",
-    })
-  }
-
-  const handleValidationTrigger = () => {
-    setIsValidationOpen(true)
   }
 
   const handleJiraCreateSuccess = (issueKey: string, issueUrl: string) => {
@@ -82,7 +69,7 @@ function ProductPageContent() {
   }
 
   return (
-    <RolePageLayout opportunity={opportunity} stage="product" onValidationTrigger={handleValidationTrigger}>
+    <RolePageLayout opportunity={opportunity} stage="product">
       <Tabs defaultValue="details" className="space-y-6">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
@@ -258,7 +245,7 @@ function ProductPageContent() {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleValidationTrigger}>Submit/Approve</Button>
+            <Button onClick={() => {}}>Submit/Approve</Button>
           </div>
         </TabsContent>
 
@@ -313,13 +300,6 @@ function ProductPageContent() {
         defaultSummary={opportunity.title}
         defaultDescription={opportunity.problemStatement}
         onSuccess={handleJiraCreateSuccess}
-      />
-
-      <AIValidationAgent
-        opportunity={opportunity}
-        open={isValidationOpen}
-        onOpenChange={setIsValidationOpen}
-        onApprove={handleApprove}
       />
     </RolePageLayout>
   )

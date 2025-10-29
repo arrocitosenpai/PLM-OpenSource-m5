@@ -2,19 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard,
-  Package,
-  Code,
-  Server,
-  Rocket,
-  HeadphonesIcon,
-  BarChart3,
-  Network,
-  Users,
-  Plug,
-  Sparkles,
-} from "lucide-react"
+import { LayoutDashboard, Package, Code, Server, Rocket, HeadphonesIcon, BarChart3, Users, Plug } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
 
@@ -56,13 +44,6 @@ const navigation = [
     name: "Integration",
     href: "/integration",
     icon: Plug,
-    roles: ["Product Manager", "Admin", "Engineer", "Platform"],
-  },
-  { name: "Architecture", href: "/architecture", icon: Network, roles: ["Admin"] },
-  {
-    name: "AI Nuvio",
-    href: "/ai-demo",
-    icon: Sparkles,
     roles: ["Product Manager", "Admin", "Engineer", "Platform"],
   },
 ]
