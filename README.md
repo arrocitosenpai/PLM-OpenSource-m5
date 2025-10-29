@@ -14,7 +14,31 @@ This repo is the open, self-hostable core of the workflow engine we're building 
 - Track status through Product, Engineering, and Platform.
 - Enforce explicit handoffs / approvals so nothing gets thrown over the wall.
 
-### 📄 AI Assist
+---
+
+## 👥 Who is this for?
+
+### 🧭 Product Managers
+- Prioritize opportunities and validate the *value* before Engineering starts.
+- Standardize intake and discovery to ensure every request has clear context and measurable impact.
+- Automatically generate product docs (PDDs) and Jira epics.
+- Keep visibility on progress and compliance gates.
+
+### ⚙️ Engineering Leads
+- Receive structured, ready-to-implement requirements.
+- Reuse past solutions or reference designs.
+- Ensure reviews, testing, and documentation happen at the right stage.
+
+### 🖥 Platform & Infrastructure Teams
+- Plan environments early based on incoming demand.
+- Automate provisioning requests and approvals.
+- Maintain auditability and compliance (SOX, GxP) across projects.
+
+---
+
+Together, these roles form a consistent delivery pipeline — from **idea → design → implementation → deployment** — with traceability and AI-powered support along the way.
+
+### 📄 AI Assist (SAAS version)
 - Drafts documents like PDD (Product Design Doc) and SDD (Solution Design Doc).
 - Summarizes context so the next team doesn't have to start cold.
 - Surfaces compliance flags (SOX / GxP style) so you don't forget critical checks.
