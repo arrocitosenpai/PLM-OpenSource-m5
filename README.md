@@ -1,31 +1,53 @@
-# NUVIO - Product Lifecycle Manager
+# PLM OpenSource (Community Edition)
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+AI-assisted Product Lifecycle Management with gates across Product → Engineering → Platform.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/scoponiagustin-7863s-projects/v0-project-lifecycle-monitor)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/ulDIni3JYFi)
+This repo is the open, self-hostable core of the workflow engine we're building at Nuvio. It helps teams move from "incoming opportunity" to "ready for delivery" with clarity, approvals, and traceability.
 
-## Overview
+---
 
-**NUVIO** - Ship the right product, faster.
+## What it does
 
-This repository contains the Product Lifecycle Manager (PLM), one of NUVIO's flagship products for AI-powered project intelligence and lifecycle management.
+### 🔁 Standardized intake to delivery
+- Capture an opportunity or request.
+- Generate the initial epic/story structure (e.g. Jira-ready).
+- Track status through Product, Engineering, and Platform.
+- Enforce explicit handoffs / approvals so nothing gets thrown over the wall.
 
-## Deployment
+### 📄 AI Assist
+- Drafts documents like PDD (Product Design Doc) and SDD (Solution Design Doc).
+- Summarizes context so the next team doesn't have to start cold.
+- Surfaces compliance flags (SOX / GxP style) so you don't forget critical checks.
 
-Your project is live at:
+### ♻ Reuse / Reference
+- Lets Engineering look for similar past projects instead of reinventing.
+- Lets Platform plan infra impact early (Do we need a new server / account / automation user?).
 
-**[https://vercel.com/scoponiagustin-7863s-projects/v0-project-lifecycle-monitor](https://vercel.com/scoponiagustin-7863s-projects/v0-project-lifecycle-monitor)**
+### 🧩 Why this is useful
+Most orgs do this in slides, Notion pages, and random Jira tickets. Things get lost, compliance shows up late, and teams argue about "who owns what". This tool forces that process into something consistent and reviewable.
 
-## Build your app
+---
 
-Continue building your app on:
+## Tech stack (high level)
 
-**[https://v0.app/chat/projects/ulDIni3JYFi](https://v0.app/chat/projects/ulDIni3JYFi)**
+- React / Next.js-style app, deployable on Vercel or locally
+- Basic single-tenant local install
+- Placeholder AI calls (no vendor keys committed here)
 
-## How It Works
+The commercial SaaS version (private) adds:
+- Multi-tenant orgs / user management
+- SSO / RBAC / audit trail
+- Billing and usage limits
+- Advanced analytics and compliance dashboards
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+Those are **not** in this repo.
+
+---
+
+## Getting started (local dev)
+
+### 1. Clone
+
+```bash
+git clone https://github.com/arrocitosenpai/PLM-OpenSource-m5.git
+cd PLM-OpenSource-m5
