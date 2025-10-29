@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
 
-// Create a single pool instance with SSL enabled for cloud Postgres
+// Initialize connection pool using the DATABASE_URL from Vercel env
 const db = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
 });
 
 export async function GET() {
   try {
+    // Run a very simple query just to test connectivity
     const result = await db.query("SELECT NOW()");
     return NextResponse.json({
       success: true,
