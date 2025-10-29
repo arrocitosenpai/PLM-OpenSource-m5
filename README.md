@@ -51,3 +51,18 @@ Those are **not** in this repo.
 ```bash
 git clone https://github.com/arrocitosenpai/PLM-OpenSource-m5.git
 cd PLM-OpenSource-m5
+
+---
+
+## 💜 Support the Project
+
+This project is maintained by [Agustin Scoponi](https://github.com/arrocitosenpai)  
+If PLM OpenSource helps you or your team:
+
+- ⭐ **Star** this repository — it really helps!
+- 🐛 **Report bugs** or suggest improvements via [Issues](https://github.com/arrocitosenpai/PLM-OpenSource-m5/issues)
+- ☕ **Support ongoing development**:  
+  [Become a GitHub Sponsor](https://github.com/sponsors/arrocitosenpai)  
+
+Your support helps keep the community edition evolving while we build the hosted version at Nuvio.
+
