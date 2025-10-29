@@ -48,7 +48,6 @@ Those are **not** in this repo.
 
 ### 1. Clone
 
-```bash
 git clone https://github.com/arrocitosenpai/PLM-OpenSource-m5.git
 cd PLM-OpenSource-m5
 
