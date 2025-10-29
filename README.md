@@ -88,4 +88,3 @@ If PLM OpenSource helps you or your team:
   [Become a GitHub Sponsor](https://github.com/sponsors/arrocitosenpai)  
 
 Your support helps keep the community edition evolving while we build the hosted version at Nuvio.
-
