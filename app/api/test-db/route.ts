@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
 
-// Initialize connection pool using the DATABASE_URL from Vercel env
 const db = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: {
+    // allow self-signed certs (Supabase)
+    rejectUnauthorized: false,
+  },
 });
 
 export async function GET() {
   try {
-    // Run a very simple query just to test connectivity
     const result = await db.query("SELECT NOW()");
     return NextResponse.json({
       success: true,
