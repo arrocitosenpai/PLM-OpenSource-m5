@@ -37,9 +37,10 @@ interface RolePageLayoutProps {
   opportunity: any
   stage: string
   children?: React.ReactNode
+  currentTab?: string
 }
 
-export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutProps) {
+export function RolePageLayout({ opportunity, stage, children, currentTab = "details" }: RolePageLayoutProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -76,6 +77,8 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
 
   const showFeedbackButton = ["product", "engineering", "platform"].includes(stage)
   const showFeedbackLog = ["product", "engineering", "platform"].includes(stage)
+
+  const shouldShowAssignedUsers = currentTab === "details" || !["product", "engineering", "platform"].includes(stage)
 
   useEffect(() => {
     async function loadData() {
@@ -322,7 +325,7 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
       <div className="flex-1 overflow-auto px-8 py-6">
         <div className="mx-auto max-w-6xl space-y-6">
           {children}
-          {assignedUsers.length > 0 && (
+          {shouldShowAssignedUsers && assignedUsers.length > 0 && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="text-sm text-muted-foreground">Assigned:</span>
               {assignedUsers.map((user) => (

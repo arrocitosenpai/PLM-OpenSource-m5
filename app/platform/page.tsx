@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,8 @@ function PlatformPageContent() {
     : mockOpportunities.find((o) =>
         roleStageFilter ? o.currentStage === roleStageFilter : o.currentStage === "platform",
       )
+
+  const [currentTab, setCurrentTab] = useState("details")
 
   if (!opportunity) {
     return (
@@ -59,8 +61,8 @@ function PlatformPageContent() {
   }
 
   return (
-    <RolePageLayout opportunity={opportunity} stage="platform">
-      <Tabs defaultValue="details" className="space-y-6">
+    <RolePageLayout opportunity={opportunity} stage="platform" currentTab={currentTab}>
+      <Tabs defaultValue="details" value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="comments">Comments</TabsTrigger>

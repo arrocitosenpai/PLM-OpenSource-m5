@@ -31,6 +31,7 @@ function EngineeringPageContent() {
   const [hasSimilarProjects, setHasSimilarProjects] = useState(true)
   const [hasReusableComponents, setHasReusableComponents] = useState(true)
   const [hasGxpData, setHasGxpData] = useState(false)
+  const [currentTab, setCurrentTab] = useState("details")
 
   if (!opportunity) {
     return (
@@ -71,8 +72,8 @@ function EngineeringPageContent() {
   }
 
   return (
-    <RolePageLayout opportunity={opportunity} stage="engineering">
-      <Tabs defaultValue="details" className="space-y-6">
+    <RolePageLayout opportunity={opportunity} stage="engineering" currentTab={currentTab}>
+      <Tabs defaultValue="details" value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="comments">Comments</TabsTrigger>
