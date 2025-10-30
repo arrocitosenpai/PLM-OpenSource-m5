@@ -27,9 +27,10 @@ export function AssignedUsersCard({ opportunityId }: AssignedUsersCardProps) {
   const handleRemoveUser = async (userId: string) => {
     const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
 
-    setOptimisticUsers(assignedUsers.filter((u) => u.id !== userId))
-
     startTransition(async () => {
+      // Optimistic update inside transition
+      setOptimisticUsers(assignedUsers.filter((u) => u.id !== userId))
+
       try {
         await removeUserFromOpportunity(opportunityId, userId)
         const users = await getAssignedUsers(opportunityId)
@@ -39,6 +40,7 @@ export function AssignedUsersCard({ opportunityId }: AssignedUsersCardProps) {
           description: `${userName} has been removed from this opportunity`,
         })
       } catch (error) {
+        // Revert optimistic update on error
         setOptimisticUsers(assignedUsers)
         toast({
           title: "Error",

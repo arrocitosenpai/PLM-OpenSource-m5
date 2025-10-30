@@ -129,10 +129,14 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
     if (selectedUser && !assignedUsers.find((u) => u.id === selectedUser)) {
       const userName = teamMembers.find((u) => u.id === selectedUser)?.full_name || "User"
       const newUser = teamMembers.find((u) => u.id === selectedUser)
-      setOptimisticUsers([...assignedUsers, newUser])
+
       setShowAssignDialog(false)
       setSelectedUser("")
+
       startTransition(async () => {
+        // Optimistic update inside transition
+        setOptimisticUsers([...assignedUsers, newUser])
+
         try {
           await assignUserToOpportunity(opportunity.id, selectedUser)
           const assigned = await getAssignedUsers(opportunity.id)
@@ -142,6 +146,7 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
             description: `${userName} has been assigned to this opportunity`,
           })
         } catch (error) {
+          // Revert optimistic update on error
           setOptimisticUsers(assignedUsers)
           toast({
             title: "Error",
@@ -155,8 +160,11 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
 
   const handleRemoveUser = async (userId: string) => {
     const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
-    setOptimisticUsers(assignedUsers.filter((u) => u.id !== userId))
+
     startTransition(async () => {
+      // Optimistic update inside transition
+      setOptimisticUsers(assignedUsers.filter((u) => u.id !== userId))
+
       try {
         await removeUserFromOpportunity(opportunity.id, userId)
         const assigned = await getAssignedUsers(opportunity.id)
@@ -166,6 +174,7 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
           description: `${userName} has been removed from this opportunity`,
         })
       } catch (error) {
+        // Revert optimistic update on error
         setOptimisticUsers(assignedUsers)
         toast({
           title: "Error",
