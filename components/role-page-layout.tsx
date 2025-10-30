@@ -295,31 +295,33 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
       <div className="border-b border-border bg-card px-8 py-4">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <h1 className="font-sans text-2xl font-semibold text-card-foreground">{opportunity.name}</h1>
-                <p className="text-sm text-muted-foreground">{opportunity.id}</p>
+            {showProjectDropdown && (
+              <div className="mb-3 w-full max-w-md">
+                <Select value={opportunity.id} onValueChange={handleProjectChange}>
+                  <SelectTrigger className="h-auto py-2">
+                    <SelectValue>
+                      <div className="flex items-center justify-between gap-2 text-left">
+                        <span className="font-medium">{opportunity.name}</span>
+                        <span className="text-sm text-muted-foreground">({opportunity.id})</span>
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projectsInStage.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{project.name}</span>
+                          <span className="text-sm text-muted-foreground">({project.id})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              {showProjectDropdown && (
-                <div className="w-64">
-                  <Select value={opportunity.id} onValueChange={handleProjectChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select project" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projectsInStage.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{project.name}</span>
-                            <span className="text-xs text-muted-foreground">{project.id}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
+            )}
+
+            <h1 className="font-sans text-2xl font-semibold text-card-foreground">{opportunity.name}</h1>
+            <p className="text-sm text-muted-foreground">{opportunity.id}</p>
           </div>
           <StatusBadge status={status} />
         </div>
