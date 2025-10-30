@@ -138,7 +138,12 @@ export async function assignUserToOpportunity(opportunityId: string, userId: str
     throw new Error("Failed to assign user")
   }
 
-  revalidatePath("/")
+  revalidatePath("/intake")
+  revalidatePath("/product")
+  revalidatePath("/engineering")
+  revalidatePath("/platform")
+  revalidatePath("/implementation")
+  revalidatePath("/support")
 }
 
 export async function removeUserFromOpportunity(opportunityId: string, userId: string) {
@@ -155,7 +160,12 @@ export async function removeUserFromOpportunity(opportunityId: string, userId: s
     throw new Error("Failed to remove user")
   }
 
-  revalidatePath("/")
+  revalidatePath("/intake")
+  revalidatePath("/product")
+  revalidatePath("/engineering")
+  revalidatePath("/platform")
+  revalidatePath("/implementation")
+  revalidatePath("/support")
 }
 
 export async function cancelOpportunity(id: string) {

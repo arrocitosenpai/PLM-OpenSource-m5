@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { StatusBadge } from "@/components/status-badge"
 import { MessageSquare, Bell } from "lucide-react"
+import { mockOpportunities } from "@/lib/mock-data"
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -37,9 +48,10 @@ interface RolePageLayoutProps {
   opportunity: any
   stage: string
   children?: React.ReactNode
+  currentTab?: string
 }
 
-export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutProps) {
+export function RolePageLayout({ opportunity, stage, children, currentTab = "details" }: RolePageLayoutProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -50,10 +62,12 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
   const { toast } = useToast()
 
   const [assignedUsers, setAssignedUsers] = useState<any[]>([])
+  const [isPending, startTransition] = useTransition()
   const [showAssignDialog, setShowAssignDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState("")
   const [openCombobox, setOpenCombobox] = useState(false)
   const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false)
   const [feedbackMessage, setFeedbackMessage] = useState("")
@@ -76,6 +90,11 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
   const showFeedbackButton = ["product", "engineering", "platform"].includes(stage)
   const showFeedbackLog = ["product", "engineering", "platform"].includes(stage)
 
+  const shouldShowAssignedUsers = currentTab === "details" || !["product", "engineering", "platform"].includes(stage)
+
+  const projectsInStage = mockOpportunities.filter((opp) => opp.currentStage === stage)
+  const showProjectDropdown = projectsInStage.length > 1
+
   useEffect(() => {
     async function loadData() {
       const users = await getUsers()
@@ -91,7 +110,7 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
       setUnreadCount(count)
     }
     loadData()
-  }, [teamType, opportunity.id])
+  }, [teamType, opportunity.id, refreshTrigger])
 
   useEffect(() => {
     setStatus(opportunity.status)
@@ -125,44 +144,59 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
 
   const handleAssignUser = async () => {
     if (selectedUser && !assignedUsers.find((u) => u.id === selectedUser)) {
-      try {
-        await assignUserToOpportunity(opportunity.id, selectedUser)
-        const assigned = await getAssignedUsers(opportunity.id)
-        setAssignedUsers(assigned)
-        const userName = teamMembers.find((u) => u.id === selectedUser)?.full_name || "User"
-        toast({
-          title: "User Assigned",
-          description: `${userName} has been assigned to this opportunity`,
-        })
-        setSelectedUser("")
-        setShowAssignDialog(false)
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to assign user",
-          variant: "destructive",
-        })
-      }
+      const userName = teamMembers.find((u) => u.id === selectedUser)?.full_name || "User"
+      const newUser = teamMembers.find((u) => u.id === selectedUser)
+
+      setShowAssignDialog(false)
+      setSelectedUser("")
+
+      startTransition(async () => {
+        try {
+          setAssignedUsers((prev) => [...prev, newUser])
+          await assignUserToOpportunity(opportunity.id, selectedUser)
+          setRefreshTrigger((prev) => prev + 1)
+          toast({
+            title: "User Assigned",
+            description: `${userName} has been assigned to this opportunity`,
+          })
+        } catch (error) {
+          console.error("[v0] Error assigning user:", error)
+          setAssignedUsers((prev) => prev.filter((u) => u.id !== selectedUser))
+          toast({
+            title: "Error",
+            description: "Failed to assign user",
+            variant: "destructive",
+          })
+        }
+      })
     }
   }
 
   const handleRemoveUser = async (userId: string) => {
-    try {
-      await removeUserFromOpportunity(opportunity.id, userId)
-      const assigned = await getAssignedUsers(opportunity.id)
-      setAssignedUsers(assigned)
-      const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
-      toast({
-        title: "User Removed",
-        description: `${userName} has been removed from this opportunity`,
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove user",
-        variant: "destructive",
-      })
-    }
+    const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
+
+    startTransition(async () => {
+      try {
+        setAssignedUsers((prev) => prev.filter((u) => u.id !== userId))
+        await removeUserFromOpportunity(opportunity.id, userId)
+        setRefreshTrigger((prev) => prev + 1)
+        toast({
+          title: "User Removed",
+          description: `${userName} has been removed from this opportunity`,
+        })
+      } catch (error) {
+        console.error("[v0] Error removing user:", error)
+        const removedUser = teamMembers.find((u) => u.id === userId)
+        if (removedUser) {
+          setAssignedUsers((prev) => [...prev, removedUser])
+        }
+        toast({
+          title: "Error",
+          description: "Failed to remove user",
+          variant: "destructive",
+        })
+      }
+    })
   }
 
   const handleSubmit = () => {
@@ -238,7 +272,6 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
         setFeedbackMessage("")
         setFeedbackTarget("")
         setShowFeedbackDialog(false)
-
         const feedback = await getFeedbackForTeam(teamType, opportunity.id)
         setFeedbackList(feedback)
       } catch (error) {
@@ -272,6 +305,31 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
       <div className="border-b border-border bg-card px-8 py-4">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex-1">
+            {showProjectDropdown && (
+              <div className="mb-3 w-full max-w-md">
+                <Select value={opportunity.id} onValueChange={handleProjectChange}>
+                  <SelectTrigger className="h-auto py-2">
+                    <SelectValue>
+                      <div className="flex items-center justify-between gap-2 text-left">
+                        <span className="font-medium">{opportunity.name}</span>
+                        <span className="text-sm text-muted-foreground">({opportunity.id})</span>
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projectsInStage.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{project.name}</span>
+                          <span className="text-sm text-muted-foreground">({project.id})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <h1 className="font-sans text-2xl font-semibold text-card-foreground">{opportunity.name}</h1>
             <p className="text-sm text-muted-foreground">{opportunity.id}</p>
           </div>
@@ -314,26 +372,7 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6">
-        <div className="mx-auto max-w-6xl space-y-6">
-          {children}
-          {assignedUsers.length > 0 && (
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-muted-foreground">Assigned:</span>
-              {assignedUsers.map((user) => (
-                <Badge key={user.id} variant="secondary" className="gap-1">
-                  {user.full_name}
-                  <button
-                    onClick={() => handleRemoveUser(user.id)}
-                    className="ml-1 rounded-full hover:bg-muted"
-                    aria-label={`Remove ${user.full_name}`}
-                  >
-                    ×
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
+        <div className="mx-auto max-w-6xl space-y-6">{children}</div>
       </div>
 
       <Dialog open={showAssignDialog} onOpenChange={setShowAssignDialog}>
@@ -462,6 +501,44 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showStageProgressDialog} onOpenChange={setShowStageProgressDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve and Submit Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to approve and submit this project? This will move the project from{" "}
+              <span className="font-semibold capitalize">{opportunity.current_stage}</span> stage to{" "}
+              <span className="font-semibold capitalize">{nextStage}</span> stage.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmStageProgression}>Approve & Submit</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this project? This action will mark the project as cancelled and cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancel}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Cancel Project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

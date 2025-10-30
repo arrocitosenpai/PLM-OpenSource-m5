@@ -32,6 +32,7 @@ function ProductPageContent() {
   const { toast } = useToast()
 
   const [isJiraCreateOpen, setIsJiraCreateOpen] = useState(false)
+  const [currentTab, setCurrentTab] = useState("details")
 
   if (!opportunity) {
     return (
@@ -70,8 +71,8 @@ function ProductPageContent() {
   }
 
   return (
-    <RolePageLayout opportunity={opportunity} stage="product">
-      <Tabs defaultValue="details" className="space-y-6">
+    <RolePageLayout opportunity={opportunity} stage="product" currentTab={currentTab}>
+      <Tabs defaultValue="details" value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="comments">Comments</TabsTrigger>

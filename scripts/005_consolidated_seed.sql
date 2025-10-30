@@ -53,7 +53,6 @@ INSERT INTO team_members (team_id, user_id, capacity_percentage) VALUES
   ('22222222-2222-2222-2222-222222222202', '11111111-1111-1111-1111-111111111112', 100),
   ('22222222-2222-2222-2222-222222222202', '11111111-1111-1111-1111-111111111113', 100),
   ('22222222-2222-2222-2222-222222222202', '11111111-1111-1111-1111-111111111115', 100),
-  ('22222222-2222-2222-2222-222222222202', '11111111-1111-1111-1111-111111111118', 100),
   ('22222222-2222-2222-2222-222222222203', '11111111-1111-1111-1111-111111111105', 100),
   ('22222222-2222-2222-2222-222222222203', '11111111-1111-1111-1111-111111111109', 100),
   ('22222222-2222-2222-2222-222222222203', '11111111-1111-1111-1111-111111111110', 100)
@@ -153,8 +152,7 @@ INSERT INTO attachments (opportunity_id, name, file_type, file_size, uploaded_by
   ('OPP-005', 'Training Portal Design.pptx', 'PPTX', '3.5 MB', '11111111-1111-1111-1111-111111111117'),
   ('OPP-006', 'Marketing Campaign Data.xlsx', 'XLSX', '4.8 MB', '11111111-1111-1111-1111-111111111116'),
   ('OPP-007', 'Quality Metrics Report.pdf', 'PDF', '2.9 MB', '11111111-1111-1111-1111-111111111111'),
-  ('OPP-008', 'Budget Planning Spreadsheet.xlsx', 'XLSX', '6.2 MB', '11111111-1111-1111-1111-111111111114')
-ON CONFLICT DO NOTHING;
+  ('OPP-008', 'Budget Planning Spreadsheet.xlsx', 'XLSX', '6.2 MB', '11111111-1111-1111-1111-111111111114');
 
 -- Now insert work items (this was causing the error before)
 INSERT INTO work_items (id, organization_id, opportunity_id, title, item_type, status, status_group, assignee_id, team_id, project, component, sprint, story_points, blocked_hours, blocker_reason, reopened, is_planned, created_at, started_at, completed_at) VALUES

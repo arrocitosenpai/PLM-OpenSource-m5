@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
@@ -12,33 +12,46 @@ interface AssignedUsersCardProps {
 
 export function AssignedUsersCard({ opportunityId }: AssignedUsersCardProps) {
   const [assignedUsers, setAssignedUsers] = useState<any[]>([])
+  const [isPending, startTransition] = useTransition()
   const { toast } = useToast()
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   useEffect(() => {
     async function loadAssignedUsers() {
+      console.log("[v0] AssignedUsersCard: Loading users for opportunity:", opportunityId)
       const users = await getAssignedUsers(opportunityId)
+      console.log("[v0] AssignedUsersCard: Loaded users:", users)
       setAssignedUsers(users)
     }
     loadAssignedUsers()
-  }, [opportunityId])
+  }, [opportunityId, refreshTrigger])
 
   const handleRemoveUser = async (userId: string) => {
-    try {
-      await removeUserFromOpportunity(opportunityId, userId)
-      const users = await getAssignedUsers(opportunityId)
-      setAssignedUsers(users)
-      const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
-      toast({
-        title: "User Removed",
-        description: `${userName} has been removed from this opportunity`,
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove user",
-        variant: "destructive",
-      })
-    }
+    const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
+
+    console.log("[v0] AssignedUsersCard: Removing user:", userName)
+
+    startTransition(async () => {
+      try {
+        setAssignedUsers((prev) => prev.filter((u) => u.id !== userId))
+        await removeUserFromOpportunity(opportunityId, userId)
+        console.log("[v0] AssignedUsersCard: User removed successfully")
+        setRefreshTrigger((prev) => prev + 1)
+        toast({
+          title: "User Removed",
+          description: `${userName} has been removed from this opportunity`,
+        })
+      } catch (error) {
+        console.error("[v0] AssignedUsersCard: Error removing user:", error)
+        const users = await getAssignedUsers(opportunityId)
+        setAssignedUsers(users)
+        toast({
+          title: "Error",
+          description: "Failed to remove user",
+          variant: "destructive",
+        })
+      }
+    })
   }
 
   return (
@@ -58,6 +71,7 @@ export function AssignedUsersCard({ opportunityId }: AssignedUsersCardProps) {
                   onClick={() => handleRemoveUser(user.id)}
                   className="ml-1 rounded-full hover:bg-muted"
                   aria-label={`Remove ${user.full_name}`}
+                  disabled={isPending}
                 >
                   ×
                 </button>
