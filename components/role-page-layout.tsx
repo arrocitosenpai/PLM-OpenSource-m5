@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useOptimistic, useTransition } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -50,7 +50,6 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
   const { toast } = useToast()
 
   const [assignedUsers, setAssignedUsers] = useState<any[]>([])
-  const [optimisticUsers, setOptimisticUsers] = useOptimistic(assignedUsers)
   const [isPending, startTransition] = useTransition()
   const [showAssignDialog, setShowAssignDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState("")
@@ -134,20 +133,14 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
       setSelectedUser("")
 
       startTransition(async () => {
-        // Optimistic update inside transition
-        setOptimisticUsers([...assignedUsers, newUser])
-
         try {
           await assignUserToOpportunity(opportunity.id, selectedUser)
-          const assigned = await getAssignedUsers(opportunity.id)
-          setAssignedUsers(assigned)
+          setAssignedUsers((prev) => [...prev, newUser])
           toast({
             title: "User Assigned",
             description: `${userName} has been assigned to this opportunity`,
           })
         } catch (error) {
-          // Revert optimistic update on error
-          setOptimisticUsers(assignedUsers)
           toast({
             title: "Error",
             description: "Failed to assign user",
@@ -162,20 +155,14 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
     const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
 
     startTransition(async () => {
-      // Optimistic update inside transition
-      setOptimisticUsers(assignedUsers.filter((u) => u.id !== userId))
-
       try {
         await removeUserFromOpportunity(opportunity.id, userId)
-        const assigned = await getAssignedUsers(opportunity.id)
-        setAssignedUsers(assigned)
+        setAssignedUsers((prev) => prev.filter((u) => u.id !== userId))
         toast({
           title: "User Removed",
           description: `${userName} has been removed from this opportunity`,
         })
       } catch (error) {
-        // Revert optimistic update on error
-        setOptimisticUsers(assignedUsers)
         toast({
           title: "Error",
           description: "Failed to remove user",
@@ -335,10 +322,10 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
       <div className="flex-1 overflow-auto px-8 py-6">
         <div className="mx-auto max-w-6xl space-y-6">
           {children}
-          {optimisticUsers.length > 0 && (
+          {assignedUsers.length > 0 && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="text-sm text-muted-foreground">Assigned:</span>
-              {optimisticUsers.map((user) => (
+              {assignedUsers.map((user) => (
                 <Badge key={user.id} variant="secondary" className="gap-1">
                   {user.full_name}
                   <button
