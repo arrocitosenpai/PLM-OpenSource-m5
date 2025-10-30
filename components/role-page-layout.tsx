@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { StatusBadge } from "@/components/status-badge"
 import { MessageSquare, Bell } from "lucide-react"
+import { mockOpportunities } from "@/lib/mock-data"
 import {
   Dialog,
   DialogContent,
@@ -80,6 +81,9 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
   const showFeedbackLog = ["product", "engineering", "platform"].includes(stage)
 
   const shouldShowAssignedUsers = currentTab === "details" || !["product", "engineering", "platform"].includes(stage)
+
+  const projectsInStage = mockOpportunities.filter((opp) => opp.currentStage === stage)
+  const showProjectDropdown = projectsInStage.length > 1
 
   useEffect(() => {
     async function loadData() {
@@ -291,8 +295,31 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
       <div className="border-b border-border bg-card px-8 py-4">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex-1">
-            <h1 className="font-sans text-2xl font-semibold text-card-foreground">{opportunity.name}</h1>
-            <p className="text-sm text-muted-foreground">{opportunity.id}</p>
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <h1 className="font-sans text-2xl font-semibold text-card-foreground">{opportunity.name}</h1>
+                <p className="text-sm text-muted-foreground">{opportunity.id}</p>
+              </div>
+              {showProjectDropdown && (
+                <div className="w-64">
+                  <Select value={opportunity.id} onValueChange={handleProjectChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projectsInStage.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{project.name}</span>
+                            <span className="text-xs text-muted-foreground">{project.id}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
           </div>
           <StatusBadge status={status} />
         </div>
