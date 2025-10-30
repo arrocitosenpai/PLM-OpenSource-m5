@@ -56,6 +56,7 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
   const [selectedUser, setSelectedUser] = useState("")
   const [openCombobox, setOpenCombobox] = useState(false)
   const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false)
   const [feedbackMessage, setFeedbackMessage] = useState("")
@@ -95,7 +96,7 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
       setUnreadCount(count)
     }
     loadData()
-  }, [teamType, opportunity.id])
+  }, [teamType, opportunity.id, refreshTrigger])
 
   useEffect(() => {
     setStatus(opportunity.status)
@@ -137,13 +138,16 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
 
       startTransition(async () => {
         try {
-          await assignUserToOpportunity(opportunity.id, selectedUser)
           setAssignedUsers((prev) => [...prev, newUser])
+          await assignUserToOpportunity(opportunity.id, selectedUser)
+          setRefreshTrigger((prev) => prev + 1)
           toast({
             title: "User Assigned",
             description: `${userName} has been assigned to this opportunity`,
           })
         } catch (error) {
+          console.error("[v0] Error assigning user:", error)
+          setAssignedUsers((prev) => prev.filter((u) => u.id !== selectedUser))
           toast({
             title: "Error",
             description: "Failed to assign user",
@@ -159,13 +163,19 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
 
     startTransition(async () => {
       try {
-        await removeUserFromOpportunity(opportunity.id, userId)
         setAssignedUsers((prev) => prev.filter((u) => u.id !== userId))
+        await removeUserFromOpportunity(opportunity.id, userId)
+        setRefreshTrigger((prev) => prev + 1)
         toast({
           title: "User Removed",
           description: `${userName} has been removed from this opportunity`,
         })
       } catch (error) {
+        console.error("[v0] Error removing user:", error)
+        const removedUser = teamMembers.find((u) => u.id === userId)
+        if (removedUser) {
+          setAssignedUsers((prev) => [...prev, removedUser])
+        }
         toast({
           title: "Error",
           description: "Failed to remove user",
