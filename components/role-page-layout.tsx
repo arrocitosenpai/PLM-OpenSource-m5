@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useOptimistic, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -50,6 +50,8 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
   const { toast } = useToast()
 
   const [assignedUsers, setAssignedUsers] = useState<any[]>([])
+  const [optimisticUsers, setOptimisticUsers] = useOptimistic(assignedUsers)
+  const [isPending, startTransition] = useTransition()
   const [showAssignDialog, setShowAssignDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState("")
   const [openCombobox, setOpenCombobox] = useState(false)
@@ -125,44 +127,53 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
 
   const handleAssignUser = async () => {
     if (selectedUser && !assignedUsers.find((u) => u.id === selectedUser)) {
-      try {
-        await assignUserToOpportunity(opportunity.id, selectedUser)
-        const assigned = await getAssignedUsers(opportunity.id)
-        setAssignedUsers(assigned)
-        const userName = teamMembers.find((u) => u.id === selectedUser)?.full_name || "User"
-        toast({
-          title: "User Assigned",
-          description: `${userName} has been assigned to this opportunity`,
-        })
-        setSelectedUser("")
-        setShowAssignDialog(false)
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to assign user",
-          variant: "destructive",
-        })
-      }
+      const userName = teamMembers.find((u) => u.id === selectedUser)?.full_name || "User"
+      const newUser = teamMembers.find((u) => u.id === selectedUser)
+      setOptimisticUsers([...assignedUsers, newUser])
+      setShowAssignDialog(false)
+      setSelectedUser("")
+      startTransition(async () => {
+        try {
+          await assignUserToOpportunity(opportunity.id, selectedUser)
+          const assigned = await getAssignedUsers(opportunity.id)
+          setAssignedUsers(assigned)
+          toast({
+            title: "User Assigned",
+            description: `${userName} has been assigned to this opportunity`,
+          })
+        } catch (error) {
+          setOptimisticUsers(assignedUsers)
+          toast({
+            title: "Error",
+            description: "Failed to assign user",
+            variant: "destructive",
+          })
+        }
+      })
     }
   }
 
   const handleRemoveUser = async (userId: string) => {
-    try {
-      await removeUserFromOpportunity(opportunity.id, userId)
-      const assigned = await getAssignedUsers(opportunity.id)
-      setAssignedUsers(assigned)
-      const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
-      toast({
-        title: "User Removed",
-        description: `${userName} has been removed from this opportunity`,
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove user",
-        variant: "destructive",
-      })
-    }
+    const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
+    setOptimisticUsers(assignedUsers.filter((u) => u.id !== userId))
+    startTransition(async () => {
+      try {
+        await removeUserFromOpportunity(opportunity.id, userId)
+        const assigned = await getAssignedUsers(opportunity.id)
+        setAssignedUsers(assigned)
+        toast({
+          title: "User Removed",
+          description: `${userName} has been removed from this opportunity`,
+        })
+      } catch (error) {
+        setOptimisticUsers(assignedUsers)
+        toast({
+          title: "Error",
+          description: "Failed to remove user",
+          variant: "destructive",
+        })
+      }
+    })
   }
 
   const handleSubmit = () => {
@@ -238,7 +249,6 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
         setFeedbackMessage("")
         setFeedbackTarget("")
         setShowFeedbackDialog(false)
-
         const feedback = await getFeedbackForTeam(teamType, opportunity.id)
         setFeedbackList(feedback)
       } catch (error) {
@@ -316,16 +326,17 @@ export function RolePageLayout({ opportunity, stage, children }: RolePageLayoutP
       <div className="flex-1 overflow-auto px-8 py-6">
         <div className="mx-auto max-w-6xl space-y-6">
           {children}
-          {assignedUsers.length > 0 && (
+          {optimisticUsers.length > 0 && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="text-sm text-muted-foreground">Assigned:</span>
-              {assignedUsers.map((user) => (
+              {optimisticUsers.map((user) => (
                 <Badge key={user.id} variant="secondary" className="gap-1">
                   {user.full_name}
                   <button
                     onClick={() => handleRemoveUser(user.id)}
                     className="ml-1 rounded-full hover:bg-muted"
                     aria-label={`Remove ${user.full_name}`}
+                    disabled={isPending}
                   >
                     ×
                   </button>

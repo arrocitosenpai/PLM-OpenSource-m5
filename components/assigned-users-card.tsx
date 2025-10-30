@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useOptimistic, useTransition } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
@@ -12,6 +12,8 @@ interface AssignedUsersCardProps {
 
 export function AssignedUsersCard({ opportunityId }: AssignedUsersCardProps) {
   const [assignedUsers, setAssignedUsers] = useState<any[]>([])
+  const [optimisticUsers, setOptimisticUsers] = useOptimistic(assignedUsers)
+  const [isPending, startTransition] = useTransition()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -23,22 +25,28 @@ export function AssignedUsersCard({ opportunityId }: AssignedUsersCardProps) {
   }, [opportunityId])
 
   const handleRemoveUser = async (userId: string) => {
-    try {
-      await removeUserFromOpportunity(opportunityId, userId)
-      const users = await getAssignedUsers(opportunityId)
-      setAssignedUsers(users)
-      const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
-      toast({
-        title: "User Removed",
-        description: `${userName} has been removed from this opportunity`,
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove user",
-        variant: "destructive",
-      })
-    }
+    const userName = assignedUsers.find((u) => u.id === userId)?.full_name || "User"
+
+    setOptimisticUsers(assignedUsers.filter((u) => u.id !== userId))
+
+    startTransition(async () => {
+      try {
+        await removeUserFromOpportunity(opportunityId, userId)
+        const users = await getAssignedUsers(opportunityId)
+        setAssignedUsers(users)
+        toast({
+          title: "User Removed",
+          description: `${userName} has been removed from this opportunity`,
+        })
+      } catch (error) {
+        setOptimisticUsers(assignedUsers)
+        toast({
+          title: "Error",
+          description: "Failed to remove user",
+          variant: "destructive",
+        })
+      }
+    })
   }
 
   return (
@@ -47,17 +55,18 @@ export function AssignedUsersCard({ opportunityId }: AssignedUsersCardProps) {
         <CardTitle>Assigned Users</CardTitle>
       </CardHeader>
       <CardContent>
-        {assignedUsers.length === 0 ? (
+        {optimisticUsers.length === 0 ? (
           <p className="text-sm text-muted-foreground">No users assigned yet</p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {assignedUsers.map((user) => (
+            {optimisticUsers.map((user) => (
               <Badge key={user.id} variant="secondary" className="gap-1 px-3 py-1">
                 {user.full_name}
                 <button
                   onClick={() => handleRemoveUser(user.id)}
                   className="ml-1 rounded-full hover:bg-muted"
                   aria-label={`Remove ${user.full_name}`}
+                  disabled={isPending}
                 >
                   ×
                 </button>
