@@ -360,27 +360,7 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6">
-        <div className="mx-auto max-w-6xl space-y-6">
-          {children}
-          {shouldShowAssignedUsers && assignedUsers.length > 0 && (
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-muted-foreground">Assigned:</span>
-              {assignedUsers.map((user) => (
-                <Badge key={user.id} variant="secondary" className="gap-1">
-                  {user.full_name}
-                  <button
-                    onClick={() => handleRemoveUser(user.id)}
-                    className="ml-1 rounded-full hover:bg-muted"
-                    aria-label={`Remove ${user.full_name}`}
-                    disabled={isPending}
-                  >
-                    ×
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
+        <div className="mx-auto max-w-6xl space-y-6">{children}</div>
       </div>
 
       <Dialog open={showAssignDialog} onOpenChange={setShowAssignDialog}>
