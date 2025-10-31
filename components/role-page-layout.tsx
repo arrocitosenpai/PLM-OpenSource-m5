@@ -81,8 +81,19 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
   const [projectsInStage, setProjectsInStage] = useState<any[]>([])
 
   const stages = ["intake", "product", "engineering", "platform", "implementation", "support"]
+
+  console.log("[v0] ========== ROLE PAGE LAYOUT LOADED ==========")
+  console.log("[v0] Opportunity ID:", opportunity.id)
+  console.log("[v0] Opportunity name:", opportunity.name)
+  console.log("[v0] Current stage from DB:", opportunity.current_stage)
+  console.log("[v0] Available stages:", stages)
+
   const currentIndex = stages.indexOf(opportunity.current_stage)
+  console.log("[v0] Current stage index:", currentIndex)
+
   const nextStage = currentIndex !== -1 && currentIndex < stages.length - 1 ? stages[currentIndex + 1] : null
+  console.log("[v0] Next stage:", nextStage)
+  console.log("[v0] Can advance?", nextStage !== null)
 
   const feedbackTargets = ["product", "engineering", "platform"].filter((target) => target !== stage)
 
@@ -200,12 +211,21 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
   }
 
   const handleSubmit = () => {
+    console.log("[v0] ========== SUBMIT/APPROVE BUTTON CLICKED ==========")
+    console.log("[v0] Current stage:", opportunity.current_stage)
+    console.log("[v0] Next stage:", nextStage)
+
     if (nextStage) {
+      console.log("[v0] Opening confirmation dialog...")
       setShowStageProgressDialog(true)
     } else {
+      console.log("[v0] ❌ Cannot advance - already at final stage or invalid stage")
       toast({
-        title: "Project Complete",
-        description: "This project is already at the final stage",
+        title: "Cannot Advance",
+        description: opportunity.current_stage
+          ? "This project is already at the final stage"
+          : "Invalid project stage. Please contact support.",
+        variant: "destructive",
       })
     }
   }
@@ -373,7 +393,14 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
             </>
           )}
 
-          <Button onClick={handleSubmit}>Submit/Approve</Button>
+          <Button
+            onClick={() => {
+              console.log("[v0] Submit/Approve button clicked!")
+              handleSubmit()
+            }}
+          >
+            Submit/Approve
+          </Button>
           <Button variant="destructive" onClick={handleCancel}>
             Cancel
           </Button>
@@ -522,7 +549,9 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => console.log("[v0] User cancelled stage progression")}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction onClick={confirmStageProgression}>Approve & Submit</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
