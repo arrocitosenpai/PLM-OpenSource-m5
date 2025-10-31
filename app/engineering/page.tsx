@@ -2,20 +2,24 @@
 
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getOpportunityById } from "@/lib/mock-data"
 import { EngineeringPageClient } from "@/components/engineering-page-client"
-import { getOpportunities } from "@/lib/actions/opportunities"
+import { getOpportunities, getOpportunityById } from "@/lib/actions/opportunities"
 
 async function EngineeringPageContent({ searchParams }: { searchParams: { id?: string } }) {
+  console.log("[v0] EngineeringPage: Loading opportunity data")
   const id = searchParams.id
 
   let opportunity
   if (id) {
+    console.log("[v0] EngineeringPage: Fetching opportunity by ID:", id)
     opportunity = await getOpportunityById(id)
   } else {
+    console.log("[v0] EngineeringPage: Fetching opportunities for engineering stage")
     const opportunities = await getOpportunities({ stage: "engineering" })
     opportunity = opportunities[0] || null
   }
+
+  console.log("[v0] EngineeringPage: Loaded opportunity:", opportunity?.id || "none")
 
   if (!opportunity) {
     return (
