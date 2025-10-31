@@ -12,7 +12,16 @@ export async function getOpportunities(filters?: {
 }) {
   const supabase = await createClient()
 
-  let query = supabase.from("opportunities").select("*")
+  let query = supabase.from("opportunities").select(
+    `
+      *,
+      owner:users!owner_id (
+        id,
+        full_name,
+        email
+      )
+    `,
+  )
 
   if (filters?.year && filters.year !== "all") {
     const yearStart = `${filters.year}-01-01`
@@ -43,7 +52,67 @@ export async function getOpportunities(filters?: {
     return []
   }
 
-  return data || []
+  // Transform data to match component expectations
+  const transformedData = await Promise.all(
+    (data || []).map(async (opp: any) => {
+      // Calculate time in stage
+      const timeInStage = await calculateTimeInStage(opp.id, opp.current_stage, opp.updated_at)
+
+      return {
+        id: opp.id,
+        name: opp.name,
+        function: opp.function,
+        currentStage: opp.current_stage, // Map snake_case to camelCase
+        status: opp.status,
+        priority: opp.priority,
+        owner: opp.owner?.full_name || "Unassigned", // Get owner name from joined data
+        timeInStage: timeInStage,
+        created_at: opp.created_at,
+        // Include all other fields for detail views
+        problemStatement: opp.problem_statement,
+        businessSponsor: opp.business_sponsor,
+        businessTeam: opp.business_team,
+        businessValue: opp.business_value,
+        qualityValue: opp.quality_value,
+        jiraEpicId: opp.jira_epic_id,
+        jiraEpicUrl: opp.jira_epic_url,
+        jiraStoryId: opp.jira_story_id,
+        jiraStoryUrl: opp.jira_story_url,
+        ownerId: opp.owner_id,
+      }
+    }),
+  )
+
+  return transformedData
+}
+
+async function calculateTimeInStage(opportunityId: string, currentStage: string, updatedAt: string): Promise<string> {
+  const supabase = await createClient()
+
+  // Try to get the most recent stage history entry for the current stage
+  const { data: stageHistory } = await supabase
+    .from("opportunity_stage_history")
+    .select("start_date")
+    .eq("opportunity_id", opportunityId)
+    .eq("stage", currentStage)
+    .order("start_date", { ascending: false })
+    .limit(1)
+    .single()
+
+  const startDate = stageHistory?.start_date ? new Date(stageHistory.start_date) : new Date(updatedAt)
+  const now = new Date()
+  const diffMs = now.getTime() - startDate.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return "< 1 day"
+  if (diffDays === 1) return "1 day"
+  if (diffDays < 7) return `${diffDays} days`
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7)
+    return weeks === 1 ? "1 week" : `${weeks} weeks`
+  }
+  const months = Math.floor(diffDays / 30)
+  return months === 1 ? "1 month" : `${months} months`
 }
 
 export async function getOpportunityById(id: string) {
