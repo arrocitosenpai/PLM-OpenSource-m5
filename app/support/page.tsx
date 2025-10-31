@@ -33,6 +33,9 @@ async function SupportPageContent({ searchParams }: { searchParams: { id?: strin
     )
   }
 
+  const assignedUsers = opportunity.assignedUsers || []
+  const notes = opportunity.notes || ""
+
   return (
     <RolePageLayout opportunity={opportunity} stage="support">
       <Card>
@@ -71,21 +74,23 @@ async function SupportPageContent({ searchParams }: { searchParams: { id?: strin
         <CardContent className="space-y-4">
           <div>
             <h3 className="mb-2 text-sm font-medium text-muted-foreground">Support Owner</h3>
-            <p className="text-sm font-medium">{opportunity.owner}</p>
+            <p className="text-sm font-medium">{opportunity.owner || "Unassigned"}</p>
           </div>
-          <div>
-            <h3 className="mb-2 text-sm font-medium text-muted-foreground">Support Team</h3>
-            <div className="flex flex-wrap gap-2">
-              {opportunity.assignedUsers.map((user) => (
-                <div
-                  key={user}
-                  className="rounded-md bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground"
-                >
-                  {user}
-                </div>
-              ))}
+          {assignedUsers.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Support Team</h3>
+              <div className="flex flex-wrap gap-2">
+                {assignedUsers.map((user: string) => (
+                  <div
+                    key={user}
+                    className="rounded-md bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground"
+                  >
+                    {user}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -120,7 +125,7 @@ async function SupportPageContent({ searchParams }: { searchParams: { id?: strin
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
-            value={opportunity.notes}
+            defaultValue={notes}
             onChange={(e) => console.log("Notes updated:", e.target.value)}
             placeholder="Add support notes..."
             className="min-h-[120px]"
