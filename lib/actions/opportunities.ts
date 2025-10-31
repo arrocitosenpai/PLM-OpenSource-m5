@@ -75,6 +75,8 @@ export async function updateOpportunityStatus(id: string, status: string) {
 export async function advanceOpportunityStage(id: string) {
   const supabase = await createClient()
 
+  console.log("[v0] Advancing stage for opportunity:", id)
+
   // Get current opportunity
   const { data: opportunity, error: fetchError } = await supabase
     .from("opportunities")
@@ -87,21 +89,25 @@ export async function advanceOpportunityStage(id: string) {
     throw new Error("Failed to fetch opportunity")
   }
 
+  console.log("[v0] Current stage:", opportunity.current_stage)
+
   const stages = ["intake", "product", "engineering", "platform", "implementation", "support"]
   const currentIndex = stages.indexOf(opportunity.current_stage)
 
   if (currentIndex === -1 || currentIndex === stages.length - 1) {
+    console.log("[v0] Cannot advance stage - already at final stage or invalid stage")
     throw new Error("Cannot advance stage")
   }
 
   const nextStage = stages[currentIndex + 1]
+  console.log("[v0] Advancing from", opportunity.current_stage, "to", nextStage)
 
-  // Update opportunity stage
   const { error: updateError } = await supabase
     .from("opportunities")
     .update({
       current_stage: nextStage,
       status: "in-progress",
+      updated_at: new Date().toISOString(),
     })
     .eq("id", id)
 
@@ -110,18 +116,27 @@ export async function advanceOpportunityStage(id: string) {
     throw new Error("Failed to advance opportunity stage")
   }
 
+  console.log("[v0] Successfully updated opportunity to stage:", nextStage)
+
   // Add stage history entry
   const { error: historyError } = await supabase.from("opportunity_stage_history").insert({
     opportunity_id: id,
     stage: nextStage,
-    started_at: new Date().toISOString(),
+    start_date: new Date().toISOString(),
   })
 
   if (historyError) {
     console.error("[v0] Error creating stage history:", historyError)
   }
 
-  revalidatePath("/")
+  revalidatePath("/intake")
+  revalidatePath("/product")
+  revalidatePath("/engineering")
+  revalidatePath("/platform")
+  revalidatePath("/implementation")
+  revalidatePath("/support")
+
+  console.log("[v0] Stage advancement complete")
   return nextStage
 }
 
