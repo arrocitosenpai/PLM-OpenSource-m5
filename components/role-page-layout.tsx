@@ -212,12 +212,14 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
 
   const confirmStageProgression = async () => {
     try {
-      console.log("[v0] Confirming stage progression for opportunity:", opportunity.id)
-      console.log("[v0] Current stage:", opportunity.current_stage, "Next stage:", nextStage)
+      console.log("[v0] ========== USER CONFIRMED STAGE PROGRESSION ==========")
+      console.log("[v0] Opportunity ID:", opportunity.id)
+      console.log("[v0] Current stage:", opportunity.current_stage)
+      console.log("[v0] Next stage:", nextStage)
 
       const newStage = await advanceStage(opportunity.id)
 
-      console.log("[v0] Stage advanced successfully to:", newStage)
+      console.log("[v0] ✅ Stage advanced successfully to:", newStage)
 
       toast({
         title: "Stage Advanced",
@@ -226,7 +228,7 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
       setShowStageProgressDialog(false)
       router.refresh()
     } catch (error) {
-      console.error("[v0] Error advancing stage:", error)
+      console.error("[v0] ❌ Error advancing stage:", error)
       toast({
         title: "Error",
         description: "Failed to advance stage",

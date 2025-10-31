@@ -75,6 +75,7 @@ export async function updateOpportunityStatus(id: string, status: string) {
 export async function advanceOpportunityStage(id: string) {
   const supabase = await createClient()
 
+  console.log("[v0] ========== STAGE ADVANCEMENT STARTED ==========")
   console.log("[v0] Advancing stage for opportunity:", id)
 
   // Get current opportunity
@@ -89,14 +90,30 @@ export async function advanceOpportunityStage(id: string) {
     throw new Error("Failed to fetch opportunity")
   }
 
-  console.log("[v0] Current stage:", opportunity.current_stage)
+  console.log("[v0] Current opportunity data:", {
+    id: opportunity.id,
+    name: opportunity.name,
+    current_stage: opportunity.current_stage,
+    status: opportunity.status,
+  })
 
   const stages = ["intake", "product", "engineering", "platform", "implementation", "support"]
   const currentIndex = stages.indexOf(opportunity.current_stage)
 
-  if (currentIndex === -1 || currentIndex === stages.length - 1) {
-    console.log("[v0] Cannot advance stage - already at final stage or invalid stage")
-    throw new Error("Cannot advance stage")
+  console.log("[v0] Stage progression:", {
+    currentStage: opportunity.current_stage,
+    currentIndex,
+    totalStages: stages.length,
+  })
+
+  if (currentIndex === -1) {
+    console.error("[v0] Invalid current stage:", opportunity.current_stage)
+    throw new Error("Invalid current stage")
+  }
+
+  if (currentIndex === stages.length - 1) {
+    console.log("[v0] Already at final stage (support)")
+    throw new Error("Cannot advance stage - already at final stage")
   }
 
   const nextStage = stages[currentIndex + 1]
@@ -112,11 +129,11 @@ export async function advanceOpportunityStage(id: string) {
     .eq("id", id)
 
   if (updateError) {
-    console.error("[v0] Error advancing opportunity stage:", updateError)
+    console.error("[v0] Database update error:", updateError)
     throw new Error("Failed to advance opportunity stage")
   }
 
-  console.log("[v0] Successfully updated opportunity to stage:", nextStage)
+  console.log("[v0] ✅ Successfully updated opportunity to stage:", nextStage)
 
   // Add stage history entry
   const { error: historyError } = await supabase.from("opportunity_stage_history").insert({
@@ -127,6 +144,8 @@ export async function advanceOpportunityStage(id: string) {
 
   if (historyError) {
     console.error("[v0] Error creating stage history:", historyError)
+  } else {
+    console.log("[v0] ✅ Stage history entry created")
   }
 
   revalidatePath("/intake")
@@ -136,7 +155,7 @@ export async function advanceOpportunityStage(id: string) {
   revalidatePath("/implementation")
   revalidatePath("/support")
 
-  console.log("[v0] Stage advancement complete")
+  console.log("[v0] ========== STAGE ADVANCEMENT COMPLETE ==========")
   return nextStage
 }
 
