@@ -90,15 +90,17 @@ async function calculateTimeInStage(opportunityId: string, currentStage: string,
   const supabase = await createClient()
 
   // Try to get the most recent stage history entry for the current stage
-  const { data: stageHistory } = await supabase
+  // Use maybeSingle() which returns null instead of throwing error when no rows found
+  const { data: stageHistory, error } = await supabase
     .from("opportunity_stage_history")
     .select("start_date")
     .eq("opportunity_id", opportunityId)
     .eq("stage", currentStage)
     .order("start_date", { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
 
+  // If there's an error or no stage history, fall back to updated_at
   const startDate = stageHistory?.start_date ? new Date(stageHistory.start_date) : new Date(updatedAt)
   const now = new Date()
   const diffMs = now.getTime() - startDate.getTime()
