@@ -218,9 +218,12 @@ export function ImplementationPageClient({ opportunity }: { opportunity: any }) 
       {!jiraConnected && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Using Mock Data</AlertTitle>
+          <AlertTitle>Connect to Jira</AlertTitle>
           <AlertDescription className="flex items-center justify-between">
-            <span>Connect to Jira Cloud to see real implementation data from your project.</span>
+            <span>
+              Connect to Jira Cloud to see real-time implementation data, sprint progress, and task tracking from your
+              project.
+            </span>
             <Button asChild variant="outline" size="sm">
               <Link href="/integration">Configure Integration</Link>
             </Button>
