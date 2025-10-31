@@ -120,14 +120,53 @@ async function calculateTimeInStage(opportunityId: string, currentStage: string,
 export async function getOpportunityById(id: string) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from("opportunities").select("*").eq("id", id).single()
+  const { data, error } = await supabase
+    .from("opportunities")
+    .select(
+      `
+      *,
+      owner:users!owner_id (
+        id,
+        full_name,
+        email
+      )
+    `,
+    )
+    .eq("id", id)
+    .single()
 
   if (error) {
     console.error("[v0] Error fetching opportunity:", error)
     return null
   }
 
-  return data
+  const currentStage = data.current_stage || "product"
+
+  const timeInStage = await calculateTimeInStage(data.id, currentStage, data.updated_at || data.created_at)
+
+  return {
+    id: data.id,
+    name: data.name,
+    function: data.function,
+    current_stage: currentStage, // Provide snake_case for database compatibility
+    currentStage: currentStage, // Provide camelCase for component compatibility
+    status: data.status || "in-progress",
+    priority: data.priority,
+    owner: data.owner?.full_name || "Unassigned",
+    timeInStage: timeInStage,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    problemStatement: data.problem_statement,
+    businessSponsor: data.business_sponsor,
+    businessTeam: data.business_team,
+    businessValue: data.business_value,
+    qualityValue: data.quality_value,
+    jiraEpicId: data.jira_epic_id,
+    jiraEpicUrl: data.jira_epic_url,
+    jiraStoryId: data.jira_story_id,
+    jiraStoryUrl: data.jira_story_url,
+    ownerId: data.owner_id,
+  }
 }
 
 export async function updateOpportunityStatus(id: string, status: string) {
@@ -161,24 +200,26 @@ export async function advanceOpportunityStage(id: string) {
     throw new Error("Failed to fetch opportunity")
   }
 
+  const currentStage = opportunity.current_stage || "product"
+
   console.log("[v0] Current opportunity data:", {
     id: opportunity.id,
     name: opportunity.name,
-    current_stage: opportunity.current_stage,
+    current_stage: currentStage,
     status: opportunity.status,
   })
 
   const stages = ["intake", "product", "engineering", "platform", "implementation", "support"]
-  const currentIndex = stages.indexOf(opportunity.current_stage)
+  const currentIndex = stages.indexOf(currentStage)
 
   console.log("[v0] Stage progression:", {
-    currentStage: opportunity.current_stage,
+    currentStage: currentStage,
     currentIndex,
     totalStages: stages.length,
   })
 
   if (currentIndex === -1) {
-    console.error("[v0] Invalid current stage:", opportunity.current_stage)
+    console.error("[v0] Invalid current stage:", currentStage)
     throw new Error("Invalid current stage")
   }
 
@@ -188,7 +229,7 @@ export async function advanceOpportunityStage(id: string) {
   }
 
   const nextStage = stages[currentIndex + 1]
-  console.log("[v0] Advancing from", opportunity.current_stage, "to", nextStage)
+  console.log("[v0] Advancing from", currentStage, "to", nextStage)
 
   const { error: updateError } = await supabase
     .from("opportunities")
