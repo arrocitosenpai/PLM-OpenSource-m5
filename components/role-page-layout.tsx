@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect, useTransition } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { StatusBadge } from "@/components/status-badge"
 import { MessageSquare, Bell } from "lucide-react"
-import { mockOpportunities } from "@/lib/mock-data"
 import {
   Dialog,
   DialogContent,
@@ -32,7 +31,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAuth, getRoleStageFilter } from "@/lib/auth-context"
+import { useAuth } from "@/lib/auth-context"
 import { createFeedback, getFeedbackForTeam, getUnreadFeedbackCount } from "@/lib/actions/feedback"
 import {
   advanceOpportunityStage as advanceStage,
@@ -41,6 +40,7 @@ import {
   assignUserToOpportunity,
   removeUserFromOpportunity,
   getAssignedUsers,
+  getOpportunities,
 } from "@/lib/actions/opportunities"
 import { getUsers } from "@/lib/actions/users"
 
@@ -53,9 +53,7 @@ interface RolePageLayoutProps {
 
 export function RolePageLayout({ opportunity, stage, children, currentTab = "details" }: RolePageLayoutProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { user } = useAuth()
-  const roleStageFilter = getRoleStageFilter(user?.role || null)
   const [status, setStatus] = useState(opportunity.status)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [pendingStatus, setPendingStatus] = useState<string | null>(null)
@@ -65,7 +63,6 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
   const [isPending, startTransition] = useTransition()
   const [showAssignDialog, setShowAssignDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState("")
-  const [openCombobox, setOpenCombobox] = useState(false)
   const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
@@ -81,6 +78,8 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
   const [showStageProgressDialog, setShowStageProgressDialog] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
 
+  const [projectsInStage, setProjectsInStage] = useState<any[]>([])
+
   const stages = ["intake", "product", "engineering", "platform", "implementation", "support"]
   const currentIndex = stages.indexOf(opportunity.current_stage)
   const nextStage = currentIndex !== -1 && currentIndex < stages.length - 1 ? stages[currentIndex + 1] : null
@@ -88,11 +87,9 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
   const feedbackTargets = ["product", "engineering", "platform"].filter((target) => target !== stage)
 
   const showFeedbackButton = ["product", "engineering", "platform"].includes(stage)
-  const showFeedbackLog = ["product", "engineering", "platform"].includes(stage)
 
   const shouldShowAssignedUsers = currentTab === "details" || !["product", "engineering", "platform"].includes(stage)
 
-  const projectsInStage = mockOpportunities.filter((opp) => opp.currentStage === stage)
   const showProjectDropdown = projectsInStage.length > 1
 
   useEffect(() => {
@@ -108,9 +105,12 @@ export function RolePageLayout({ opportunity, stage, children, currentTab = "det
 
       const count = await getUnreadFeedbackCount(teamType, opportunity.id)
       setUnreadCount(count)
+
+      const projects = await getOpportunities({ stage })
+      setProjectsInStage(projects)
     }
     loadData()
-  }, [teamType, opportunity.id, refreshTrigger])
+  }, [teamType, opportunity.id, refreshTrigger, stage])
 
   useEffect(() => {
     setStatus(opportunity.status)
