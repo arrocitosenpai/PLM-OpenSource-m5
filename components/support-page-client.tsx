@@ -1,40 +1,46 @@
 "use client"
 
-import { Suspense } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { getOpportunities, getOpportunityById } from "@/lib/actions/opportunities"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { RolePageLayout } from "@/components/role-page-layout"
+import { useToast } from "@/hooks/use-toast"
 import { CheckCircle2 } from "lucide-react"
+import { useState } from "react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
-async function SupportPageContent({ searchParams }: { searchParams: { id?: string } }) {
-  console.log("[v0] SupportPage: Loading opportunity data")
-  const id = searchParams.id
+export function SupportPageClient({ opportunity }: { opportunity: any }) {
+  const { toast } = useToast()
+  const [notes, setNotes] = useState("Project successfully delivered. All acceptance criteria met.")
+  const [showCloseDialog, setShowCloseDialog] = useState(false)
 
-  let opportunity
-  if (id) {
-    console.log("[v0] SupportPage: Fetching opportunity by ID:", id)
-    opportunity = await getOpportunityById(id)
-  } else {
-    console.log("[v0] SupportPage: Fetching opportunities for support stage")
-    const opportunities = await getOpportunities({ stage: "support" })
-    opportunity = opportunities[0] || null
+  const handleCloseProject = () => {
+    setShowCloseDialog(true)
   }
 
-  console.log("[v0] SupportPage: Loaded opportunity:", opportunity?.id || "none")
-
-  if (!opportunity) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">No opportunity found</p>
-      </div>
-    )
+  const handleReopen = () => {
+    toast({
+      title: "Project Reopened",
+      description: "This opportunity has been reopened for additional work",
+    })
   }
 
-  const assignedUsers = opportunity.assignedUsers || []
-  const notes = opportunity.notes || ""
+  const confirmCloseProject = () => {
+    toast({
+      title: "Project Closed",
+      description: "This opportunity has been successfully closed",
+    })
+    setShowCloseDialog(false)
+  }
 
   return (
     <RolePageLayout opportunity={opportunity} stage="support">
@@ -74,23 +80,8 @@ async function SupportPageContent({ searchParams }: { searchParams: { id?: strin
         <CardContent className="space-y-4">
           <div>
             <h3 className="mb-2 text-sm font-medium text-muted-foreground">Support Owner</h3>
-            <p className="text-sm font-medium">{opportunity.owner || "Unassigned"}</p>
+            <p className="text-sm font-medium">{opportunity.owner}</p>
           </div>
-          {assignedUsers.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Support Team</h3>
-              <div className="flex flex-wrap gap-2">
-                {assignedUsers.map((user: string) => (
-                  <div
-                    key={user}
-                    className="rounded-md bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground"
-                  >
-                    {user}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -125,37 +116,35 @@ async function SupportPageContent({ searchParams }: { searchParams: { id?: strin
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
-            defaultValue={notes}
-            onChange={(e) => console.log("Notes updated:", e.target.value)}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
             placeholder="Add support notes..."
             className="min-h-[120px]"
           />
           <div className="flex gap-2">
-            <Button onClick={() => console.log("Close Project")}>Close Project</Button>
-            <Button variant="outline" onClick={() => console.log("Reopen Project")}>
+            <Button onClick={handleCloseProject}>Close Project</Button>
+            <Button variant="outline" onClick={handleReopen}>
               Reopen Project
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to close this project? This will mark the project as complete and archive all
+              related information.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, Keep Open</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCloseProject}>Yes, Close Project</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </RolePageLayout>
-  )
-}
-
-export default function SupportPage({ searchParams }: { searchParams: { id?: string } }) {
-  return (
-    <Suspense fallback={<SupportPageSkeleton />}>
-      <SupportPageContent searchParams={searchParams} />
-    </Suspense>
-  )
-}
-
-function SupportPageSkeleton() {
-  return (
-    <div className="space-y-6 p-6">
-      <Skeleton className="h-48 w-full" />
-      <Skeleton className="h-64 w-full" />
-      <Skeleton className="h-96 w-full" />
-    </div>
   )
 }

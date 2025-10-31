@@ -14,8 +14,12 @@ export function DashboardMetrics({ opportunities }: DashboardMetricsProps) {
   const completed = opportunities.filter((o) => o.status === "completed").length
   const atRisk = opportunities.filter((o) => o.status === "need-clarification" || o.priority === "high").length
 
-  // Calculate average time in stage (convert time strings to hours)
   const avgTimeInStage = opportunities.reduce((acc, opp) => {
+    // Handle missing timeInStage field from database records
+    if (!opp.timeInStage) {
+      return acc
+    }
+
     const match = opp.timeInStage.match(/(\d+)d\s*(\d+)h/)
     if (match) {
       const days = Number.parseInt(match[1])
@@ -24,7 +28,10 @@ export function DashboardMetrics({ opportunities }: DashboardMetricsProps) {
     }
     return acc
   }, 0)
-  const avgHours = Math.round(avgTimeInStage / totalOpportunities)
+
+  // Only calculate average if we have valid data
+  const opportunitiesWithTime = opportunities.filter((o) => o.timeInStage).length
+  const avgHours = opportunitiesWithTime > 0 ? Math.round(avgTimeInStage / opportunitiesWithTime) : 0
   const avgDays = Math.floor(avgHours / 24)
   const remainingHours = avgHours % 24
 
