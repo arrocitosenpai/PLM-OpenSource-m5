@@ -1,13 +1,19 @@
-"use client"
-
+// app/engineering/page.tsx
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { EngineeringPageClient } from "@/components/engineering-page-client"
 import { getOpportunities, getOpportunityById } from "@/lib/actions/opportunities"
+import { EngineeringPageClientWrapper } from "./engineering-page-client-wrapper"
 
-async function EngineeringPageContent({ searchParams }: { searchParams: { id?: string } }) {
+// NOTE: no "use client" here. This is a Server Component now.
+// Server Components in the /app router can be async, so we do work here.
+export default async function EngineeringPage({
+  searchParams,
+}: {
+  searchParams: { id?: string }
+}) {
   console.log("[v0] EngineeringPage: Loading opportunity data")
-  const id = searchParams.id
+
+  const id = searchParams?.id
 
   let opportunity
   if (id) {
@@ -29,13 +35,9 @@ async function EngineeringPageContent({ searchParams }: { searchParams: { id?: s
     )
   }
 
-  return <EngineeringPageClient opportunity={opportunity} />
-}
-
-export default function EngineeringPage({ searchParams }: { searchParams: { id?: string } }) {
   return (
     <Suspense fallback={<EngineeringPageSkeleton />}>
-      <EngineeringPageContent searchParams={searchParams} />
+      <EngineeringPageClientWrapper opportunity={opportunity} />
     </Suspense>
   )
 }

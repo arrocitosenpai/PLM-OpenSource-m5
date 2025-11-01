@@ -1,13 +1,20 @@
-"use client"
-
+// app/product/page.tsx
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ProductPageClient } from "@/components/product-page-client"
 import { getOpportunities, getOpportunityById } from "@/lib/actions/opportunities"
+import { ProductPageClientWrapper } from "./product-page-client-wrapper"
 
-async function ProductPageContent({ searchParams }: { searchParams: { id?: string } }) {
-  const id = searchParams.id
+// NOTE: no "use client" here. This is now a Server Component.
+// Server Components in the /app router CAN be async.
+export default async function ProductPage({
+  searchParams,
+}: {
+  searchParams: { id?: string }
+}) {
+  // Read the id from the query string (e.g. /product?id=123)
+  const id = searchParams?.id
 
+  // Fetch data on the server (safe for Supabase / DB)
   let opportunity
   if (id) {
     opportunity = await getOpportunityById(id)
@@ -16,6 +23,7 @@ async function ProductPageContent({ searchParams }: { searchParams: { id?: strin
     opportunity = opportunities[0] || null
   }
 
+  // No data found case
   if (!opportunity) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -24,13 +32,10 @@ async function ProductPageContent({ searchParams }: { searchParams: { id?: strin
     )
   }
 
-  return <ProductPageClient opportunity={opportunity} />
-}
-
-export default function ProductPage({ searchParams }: { searchParams: { id?: string } }) {
+  // Pass the resolved data down into a client component to render UI
   return (
     <Suspense fallback={<ProductPageSkeleton />}>
-      <ProductPageContent searchParams={searchParams} />
+      <ProductPageClientWrapper opportunity={opportunity} />
     </Suspense>
   )
 }

@@ -1,13 +1,19 @@
-"use client"
-
+// app/platform/page.tsx
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PlatformPageClient } from "@/components/platform-page-client"
 import { getOpportunities, getOpportunityById } from "@/lib/actions/opportunities"
+import { PlatformPageClientWrapper } from "./platform-page-client-wrapper"
 
-async function PlatformPageContent({ searchParams }: { searchParams: { id?: string } }) {
+// NOTE: no "use client" here. This file is a Server Component now.
+// Server Components in the /app router can be async.
+export default async function PlatformPage({
+  searchParams,
+}: {
+  searchParams: { id?: string }
+}) {
   console.log("[v0] PlatformPage: Loading opportunity data")
-  const id = searchParams.id
+
+  const id = searchParams?.id
 
   let opportunity
   if (id) {
@@ -29,13 +35,9 @@ async function PlatformPageContent({ searchParams }: { searchParams: { id?: stri
     )
   }
 
-  return <PlatformPageClient opportunity={opportunity} />
-}
-
-export default function PlatformPage({ searchParams }: { searchParams: { id?: string } }) {
   return (
     <Suspense fallback={<PlatformPageSkeleton />}>
-      <PlatformPageContent searchParams={searchParams} />
+      <PlatformPageClientWrapper opportunity={opportunity} />
     </Suspense>
   )
 }

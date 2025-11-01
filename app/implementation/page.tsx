@@ -1,13 +1,19 @@
-"use client"
-
+// app/implementation/page.tsx
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ImplementationPageClient } from "@/components/implementation-page-client"
 import { getOpportunities, getOpportunityById } from "@/lib/actions/opportunities"
+import { ImplementationPageClientWrapper } from "./implementation-page-client-wrapper"
 
-async function ImplementationPageContent({ searchParams }: { searchParams: { id?: string } }) {
+// NOTE: no "use client" here. This file is now a Server Component.
+// Server Components in /app can be async, so we fetch data here.
+export default async function ImplementationPage({
+  searchParams,
+}: {
+  searchParams: { id?: string }
+}) {
   console.log("[v0] ImplementationPage: Loading opportunity data")
-  const id = searchParams.id
+
+  const id = searchParams?.id
 
   let opportunity
   if (id) {
@@ -29,13 +35,9 @@ async function ImplementationPageContent({ searchParams }: { searchParams: { id?
     )
   }
 
-  return <ImplementationPageClient opportunity={opportunity} />
-}
-
-export default function ImplementationPage({ searchParams }: { searchParams: { id?: string } }) {
   return (
     <Suspense fallback={<ImplementationPageSkeleton />}>
-      <ImplementationPageContent searchParams={searchParams} />
+      <ImplementationPageClientWrapper opportunity={opportunity} />
     </Suspense>
   )
 }
